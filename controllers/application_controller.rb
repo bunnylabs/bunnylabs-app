@@ -1,17 +1,7 @@
-require 'sinatra'
-require 'omniauth'
-require 'couchrest_model'
+require_relative 'basic_controller.rb'
 
-class ApplicationController < Sinatra::Base
- 
-	use Rack::Session::Pool, :cookie_only => false, :defer => true
-	use OmniAuth::Strategies::Developer
+class ApplicationController < BasicController
 
-	not_found do
-	  'i think you are as lost as i am'
-	end
-
-	error 403 do
-	  'you shall not pass'
-	end
+	# TODO unpackage auth
+	
 end

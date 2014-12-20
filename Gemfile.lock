@@ -32,6 +32,7 @@ GEM
       hashie (>= 1.2, < 4)
       rack (~> 1.0)
     rack (1.5.2)
+    rack-cors (0.2.9)
     rack-protection (1.5.3)
       rack
     rdoc (4.1.2)
@@ -58,5 +59,6 @@ PLATFORMS
 DEPENDENCIES
   couchrest_model (~> 2.0.3)
   omniauth (~> 1.2.2)
+  rack-cors (= 0.2.9)
   sinatra (~> 1.4.5)
   thin (~> 1.6.3)

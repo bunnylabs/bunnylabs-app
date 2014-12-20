@@ -6,8 +6,13 @@ class WebsiteController < ApplicationController
 	  "Art thou lost?"
 	end
 
+
+	get '/userinfo' do
+		halt 401
+	end
+
+
 	get '/post' do
-	  @user = User.create :username => "hello", :password => "content"
 
 	  "Posted"
 	end
