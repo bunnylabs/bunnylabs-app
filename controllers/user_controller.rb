@@ -1,4 +1,5 @@
 require_relative 'basic_controller.rb'
+require "pp"
 
 class UserController < BasicController
 	
@@ -16,11 +17,15 @@ class UserController < BasicController
 	#register
 	post '/' do
 
-		@user = User.create :name => "kis",
-							:email => "mail@mail.com", 
-							:password => "myp455w0rd", 
-							:validationToken => "content", 
-							:registrationTime => DateTime.now
+		request_payload = JSON.parse request.body.read
+
+		pp request_payload
+
+		#@user = User.create :name => "kis",
+		#					:email => "mail@mail.com", 
+		#					:password => "myp455w0rd", 
+		#					:validationToken => "content", 
+		#					:registrationTime => DateTime.now
 		"register"
 	end
 
@@ -30,7 +35,7 @@ class UserController < BasicController
 	end
 
 	#validate
-	get '/:name/validate/:validationToken' do
+	post '/:name/validationToken/:validationToken' do
 		validationToken = params[:validationToken]
 	end
 

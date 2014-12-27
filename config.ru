@@ -42,5 +42,5 @@ end
 # Routes
 
 map('/') { run WebsiteController }
-map('/session/') { run SessionController }
-map('/user/') { run UserController }
+map('/sessions/') { run SessionController }
+map('/users/') { run UserController }
