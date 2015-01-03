@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'couchrest_model'
+require 'active_support/all'
 
 class BasicController < Sinatra::Base
 
@@ -7,8 +8,5 @@ class BasicController < Sinatra::Base
 	  'i think you are as lost as i am'
 	end
 
-	error 403 do
-	  'you shall not pass'
-	end
-	
+	set :salt, "HAHAHAHA"
 end

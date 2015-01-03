@@ -1,13 +1,13 @@
 require 'sinatra/base'
 require 'rack/cors'
- 
-Dir.glob('./{models,helpers,controllers}/*.rb').each { |file| require file }
- 
-ApplicationController.configure :development do
+
+Dir.glob('./{helpers,controllers}/*.rb').each { |file| require file }
+
+BasicController.configure :development do
 	configure do
-	  $COUCH = CouchRest.new 'http://localhost:5984'
-	  $COUCH.default_database = 'bunnylabs'
-	  $COUCHDB = $COUCH.default_database
+		$COUCH = CouchRest.new 'http://localhost:5984'
+		$COUCH.default_database = 'bunnylabs'
+		$COUCHDB = $COUCH.default_database
 	end
 
 	use Rack::Cors do
@@ -21,11 +21,11 @@ ApplicationController.configure :development do
 	end
 end
  
-ApplicationController.configure :production do
+BasicController.configure :production do
 	configure do
-	  $COUCH = CouchRest.new 'https://db.labs.astrobunny.net'
-	  $COUCH.default_database = 'bunnylabs'
-	  $COUCHDB = $COUCH.default_database
+		$COUCH = CouchRest.new 'http://localhost:5984'
+		$COUCH.default_database = 'bunnylabs'
+		$COUCHDB = $COUCH.default_database
 	end
 
 	use Rack::Cors do
@@ -38,6 +38,11 @@ ApplicationController.configure :production do
 	  end
 	end
 end
+
+
+# Models 
+
+Dir.glob('./{models}/*.rb').each { |file| require file }
 
 # Routes
 

@@ -1,9 +1,9 @@
-require_relative 'application_controller.rb'
+require_relative 'authenticated_controller.rb'
 
-class WebsiteController < ApplicationController
+class WebsiteController < AuthenticatedController
 	
 	get '/' do
-	  "Art thou lost?"
+	  "Hello world"
 	end
 
 
