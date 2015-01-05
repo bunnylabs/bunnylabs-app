@@ -3,8 +3,24 @@ require_relative 'basic_controller.rb'
 class SessionController < BasicController
 	
 	#get session info
-	get '/' do
-		"get session info"
+	get '/current' do
+
+		authToken = request.env['HTTP_AUTHENTICATION_TOKEN']
+
+		begin
+			session = Session.get authToken
+
+			user = User.get session[:userid]
+
+			returnObject = {
+				:username => user[:name]
+			}
+
+			return returnObject.to_json
+
+		rescue
+			halt 401
+		end
 	end
 
 	#login
@@ -55,7 +71,22 @@ class SessionController < BasicController
 	end
 
 	#logout
-	delete '/' do
+	delete '/current' do
+
+		authToken = request.env['HTTP_AUTHENTICATION_TOKEN']
+
+		begin
+			session = Session.get authToken
+
+			user = User.get session[:userid]
+
+			user.update_attributes(:currentSession => "")
+
+			return "Logged out. Thank you"
+
+		rescue
+			halt 401
+		end
 
 	end
 
