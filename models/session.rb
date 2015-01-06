@@ -1,7 +1,6 @@
 require 'couchrest_model'
 
 class Session < CouchRest::Model::Base
-  use_database $COUCHDB
 
   property :userid, String
   property :loginTime, Integer

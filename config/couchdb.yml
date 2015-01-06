@@ -1,0 +1,21 @@
+development: &development
+  protocol: 'http'
+  host: localhost
+  port: 5984
+  prefix: bunnylabs
+  suffix: 
+  username: bunnylabs-app
+  password: daysofdash
+
+test:
+  <<: *development
+  suffix: test
+
+production:
+  protocol: 'https'
+  host: <%= ENV['DATABASE_HOST'] %>
+  port: <%= ENV['DATABASE_PORT'] %>
+  prefix: <%= ENV['DATABASE_NAME'] %>
+  suffix: 
+  username: <%= ENV['DATABASE_USERNAME'] %>
+  password: <%= ENV['DATABASE_PASSWORD'] %>
