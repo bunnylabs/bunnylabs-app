@@ -46,7 +46,8 @@ class UserController < BasicController
 							:email => request_payload["email"],
 							:password => hashedPassword,
 							:validationToken => hash,
-							:registrationTime => registrationTime
+							:registrationTime => registrationTime,
+							:accountType => "normal"
 
 		return request_payload["username"]
 	end

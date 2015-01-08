@@ -5,7 +5,7 @@ require 'active_support/all'
 class BasicController < Sinatra::Base
 
 	not_found do
-	  'i think you are as lost as i am'
+	  'Requested resource is not available'
 	end
 
 	set :salt, "HAHAHAHA"

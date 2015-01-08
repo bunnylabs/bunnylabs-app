@@ -10,6 +10,7 @@ class User < CouchRest::Model::Base
   property :validationToken, String
   property :registrationTime, Integer
   property :currentSession, String
+  property :accountType, String
 
   design do
     view :by_email

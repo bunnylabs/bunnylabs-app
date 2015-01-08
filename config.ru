@@ -50,3 +50,4 @@ Dir.glob('./{models}/*.rb').each { |file| require file }
 map('/') { run WebsiteController }
 map('/sessions/') { run SessionController }
 map('/users/') { run UserController }
+map('/admin/') { run AdminController }
