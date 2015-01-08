@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'couchrest_model'
 require 'active_support/all'
+require 'octokit'
 
 class BasicController < Sinatra::Base
 

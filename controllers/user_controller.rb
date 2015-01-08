@@ -6,49 +6,24 @@ require 'net/smtp'
 
 class UserController < BasicController
 	
-	#check if user exists
-	get '/:name' do
-		view = User.by_name.key(params[:name])
-
-		if view.rows.length == 0 
-			halt 404
-		end
-
-		params[:name]
-	end
-
 	#register
 	post '/' do
 
 		request_payload = JSON.parse request.body.read
 
-		request_payload["username"].downcase!
-		#pp request_payload
-
-		nameView = User.by_name.key(request_payload["username"])
-		emailView = User.by_email.key(request_payload["email"])
-
-		if nameView.rows.length != 0
+		if UserUtils.is_normal_username request_payload["username"] == false
 			status 409
-			return "User name " + request_payload["username"] + " already exists"
+			return "Allowed usernames only contain letters, numbers and underscores"
 		end
 
-		if emailView.rows.length != 0
-			status 409
-			return "E-mail " + request_payload["email"] + " already exists"
-		end
+		result = UserUtils.create_user request_payload["username"], 
+										request_payload["password"], 
+										request_payload["email"], 
+										"",
+										settings.salt
 
-		registrationTime = Time.now.to_i
-		hashedPassword = Digest::SHA1.hexdigest request_payload["password"] + settings.salt
-		hash = Digest::SHA1.hexdigest request_payload["username"] + registrationTime.to_s + request_payload["email"] + settings.salt
-
-		user = User.create :name => request_payload["username"],
-							:email => request_payload["email"],
-							:password => hashedPassword,
-							:validationToken => hash,
-							:registrationTime => registrationTime
-
-		return request_payload["username"]
+		status result[:status]
+		return result[:result]
 	end
 
 	#deregister
@@ -61,29 +36,16 @@ class UserController < BasicController
 		name = params[:name]
 		validationToken = params[:validationToken]
 
-		nameView = User.by_name.limit(1)
+		user = UserUtils.get_user_named name
 
-		if nameView.total_rows == 0
+		if user == false or user[:validated] == true or user[:validationToken] != validationToken
 			status 404
+			return "Not found"
 		end
 
-		nameView.each do |user|
-			user = User.get user.id
-			if user[:validated]
-				status 404
-				return "Not found"
-			end
-
-			if user[:validationToken] == validationToken
-
-				puts user.id
-				user.update_attributes(:validated => true)
-				return user[:name]
-			else
-				status 404
-				return "Not found"
-			end
-		end
+		puts user.id
+		user.update_attributes(:validated => true)
+		return user[:name]
 	end
 
 	post '/:name/forgotPassword' do
