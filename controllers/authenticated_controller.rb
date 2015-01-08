@@ -4,7 +4,7 @@ class AuthenticatedController < BasicController
 
 	# Authenticate the user
 	before do
-		authToken = request.env['HTTP_AUTHENTICATION_TOKEN']
+		authToken = params[:auth]
 
 		begin
 			session = Session.get authToken

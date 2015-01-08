@@ -4,7 +4,7 @@ class AdminController < BasicController
 
 	# Authenticate the user
 	before do
-		authToken = request.env['HTTP_AUTHENTICATION_TOKEN']
+		authToken = params[:auth]
 
 		begin
 			session = Session.get authToken
@@ -12,7 +12,6 @@ class AdminController < BasicController
 			user = User.get session[:userid]
 
 			if user[:accountType] != "admin"
-
 				halt 403
 			end
 
@@ -27,9 +26,9 @@ class AdminController < BasicController
 			end
 
 			session.update_attributes(:lastUseTime => currentTime)
-
+			
 		rescue
-			halt 401
+			halt 403
 		end
 	end
 

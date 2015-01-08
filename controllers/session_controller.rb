@@ -7,7 +7,7 @@ class SessionController < BasicController
 	#get session info
 	get '/current' do
 
-		authToken = request.env['HTTP_AUTHENTICATION_TOKEN']
+		authToken = params[:auth]
 
 		begin
 			session = Session.get authToken
@@ -37,7 +37,7 @@ class SessionController < BasicController
 		if user == false or 
 			user[:password] != hashedPassword or 
 			!user[:validated] or 
-			UserUtils.is_normal_username request_payload["username"] == false
+			(UserUtils.is_normal_username request_payload["username"]) == false
 
 			status 403
 			return "Wrong username/password combination. Did you forget to click the validation link?"
@@ -52,7 +52,7 @@ class SessionController < BasicController
 	#logout
 	delete '/current' do
 
-		authToken = request.env['HTTP_AUTHENTICATION_TOKEN']
+		authToken = params[:auth]
 
 		begin
 			session = Session.get authToken
@@ -77,61 +77,69 @@ class SessionController < BasicController
 			"error" => ""
 		}
 
-		if settings.github_registration_enabled
-			begin
+		errorMessage = "Internal server error"
 
-				code = params[:code]
+		begin
 
-				uri = URI('https://github.com/login/oauth/access_token')
-				res = Net::HTTP.post_form(uri, 
-					'client_id' => settings.github_client_id, 
-					'client_secret' => settings.github_client_secret,
-					'code' => code
-					)
+			if !settings.github_registration_enabled
+				errorMessage = "Registration has been disabled"
+				raise
+			end
 
-				result = Rack::Utils.parse_nested_query(res.body)
+			code = params[:code]
 
-				accessToken = result['access_token']
+			uri = URI('https://github.com/login/oauth/access_token')
+			res = Net::HTTP.post_form(uri, 
+				'client_id' => settings.github_client_id, 
+				'client_secret' => settings.github_client_secret,
+				'code' => code
+				)
 
-				client = Octokit::Client.new(:access_token => accessToken)
+			result = Rack::Utils.parse_nested_query(res.body)
 
-				userInfo = client.user
+			accessToken = result['access_token']
 
-				properUsername = "github::#{userInfo.login}"
+			client = Octokit::Client.new(:access_token => accessToken)
 
-				user = UserUtils.get_user_named properUsername
+			userInfo = client.user
 
-				if user == false
+			properUsername = "#{userInfo.login}@github"
 
-					#absorb the email
-					emails = client.emails
+			user = UserUtils.get_user_named properUsername
 
-					primaryEmail = ""
+			if user == false
 
-					emails.each do |email|
-						if email[:primary] == true
-							primaryEmail = email[:email]
-						end
+				#absorb the email
+				emails = client.emails
+
+				primaryEmail = ""
+
+				emails.each do |email|
+					if email[:primary] == true
+						primaryEmail = email[:email]
 					end
-
-					result = UserUtils.create_user properUsername, 
-													userInfo.login + userInfo.id.to_s + settings.salt, # basically nonsense 
-													primaryEmail, 
-													accessToken,
-													settings.salt
-
-					user = UserUtils.get_user_named properUsername
 				end
 
-				session = UserUtils.login_user user, request.ip, 14.days.from_now.to_i
+				result = UserUtils.create_user properUsername, 
+												userInfo.login + userInfo.id.to_s + settings.salt, # basically nonsense 
+												primaryEmail, 
+												accessToken,
+												settings.salt
 
-				message["authToken"] = session.id
+				if result[:status] != 200
+					errorMessage = result[:result]
+				end
 
-			rescue => e
-				message["error"] = "Internal server error"
+				user = UserUtils.get_user_named properUsername
 			end
-		else
-			message["error"] = "Registration has been disabled"
+
+			session = UserUtils.login_user user, request.ip, 14.days.from_now.to_i
+
+			message["authToken"] = session.id
+
+		rescue => e
+			
+			message["error"] = errorMessage
 		end
 
 		redirect "#{settings.front_end_address}/githubLoginReceiver.html?#{message.to_query}"

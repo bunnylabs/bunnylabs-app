@@ -65,14 +65,13 @@ class UserUtils
 		username.downcase!
 
 		nameView = User.by_name.key(username)
-		emailView = User.by_email.key(email)
-
 		if nameView.rows.length != 0
 			return {:status => 409, :result => "User name #{username} already exists"} 
 		end
 
+		emailView = User.by_email.key(email)
 		if emailView.rows.length != 0
-			return {:status => 409, :result => "E-mail #{email} already exists"} 
+			return {:status => 409, :result => "A user with #{email} already exists. Please log in as that user."} 
 		end
 
 		registrationTime = Time.now.to_i
