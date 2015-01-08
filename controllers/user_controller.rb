@@ -3,53 +3,66 @@ require_relative 'basic_controller.rb'
 require 'pp'
 require 'digest/sha1'
 require 'net/smtp'
+require 'pony'
 
 class UserController < BasicController
 	
-	#check if user exists
-	get '/:name' do
-		view = User.by_name.key(params[:name])
-
-		if view.rows.length == 0 
-			halt 404
-		end
-
-		params[:name]
-	end
-
 	#register
 	post '/' do
 
+		if settings.basic_registration_enabled == false
+			status 403
+			return "Registration has been disabled"
+		end
+
 		request_payload = JSON.parse request.body.read
 
-		request_payload["username"].downcase!
-		#pp request_payload
-
-		nameView = User.by_name.key(request_payload["username"])
-		emailView = User.by_email.key(request_payload["email"])
-
-		if nameView.rows.length != 0
+		if (UserUtils.is_normal_username request_payload["username"]) == false
 			status 409
-			return "User name " + request_payload["username"] + " already exists"
+			return "Allowed usernames only contain letters, numbers and underscores"
 		end
 
-		if emailView.rows.length != 0
-			status 409
-			return "E-mail " + request_payload["email"] + " already exists"
+		result = UserUtils.create_user request_payload["username"], 
+										request_payload["password"], 
+										request_payload["email"], 
+										"",
+										settings.salt
+
+		if result[:status] == 200
+
+			user = UserUtils.get_user_named request_payload["username"]
+
+			message = <<-MESSAGE_END
+This e-mail is sent to you because you registered an account using this e-mail address on BunnyLabs.
+
+If you do not believe that you registered an account, please feel free to ignore this mail or throw it in the trash.
+
+Otherwise please click the following link to complete your registration:
+
+#{settings.front_end_address}/en/#validate=#{user[:validationToken]}&validateUsername=#{user[:name]}
+			MESSAGE_END
+
+			Pony.mail({
+				:to => request_payload["email"],
+				:from => 'no-reply@astrobunny.net', 
+				:subject => 'Welcome to BunnyLabs!', 
+				:body => message,
+				:via => :smtp,
+				:via_options => {
+					:address              => 'smtp.gmail.com',
+					:port                 => '587',
+					:enable_starttls_auto => true,
+					:user_name            => ENV['MAIL_USERNAME'],
+					:password             => ENV['MAIL_PASSWORD'],
+					:authentication       => :plain, # :plain, :login, :cram_md5, no auth by default
+					:domain               => "astrobunny.net" # the HELO domain provided by the client to the server
+				}
+			})
 		end
 
-		registrationTime = Time.now.to_i
-		hashedPassword = Digest::SHA1.hexdigest request_payload["password"] + settings.salt
-		hash = Digest::SHA1.hexdigest request_payload["username"] + registrationTime.to_s + request_payload["email"] + settings.salt
 
-		user = User.create :name => request_payload["username"],
-							:email => request_payload["email"],
-							:password => hashedPassword,
-							:validationToken => hash,
-							:registrationTime => registrationTime,
-							:accountType => "normal"
-
-		return request_payload["username"]
+		status result[:status]
+		return result[:result]
 	end
 
 	#deregister
@@ -58,33 +71,27 @@ class UserController < BasicController
 	end
 
 	#validate
-	get '/:name/validationToken/:validationToken' do
-		name = params[:name]
-		validationToken = params[:validationToken]
+	post '/:name/validation' do
 
-		nameView = User.by_name.limit(1)
+		request_payload = JSON.parse request.body.read
 
-		if nameView.total_rows == 0
+		name = request_payload["name"]
+		validationToken = request_payload["validationToken"]
+
+		user = UserUtils.get_user_named name
+
+		if params[:name] != request_payload["name"] or 
+			user == false or 
+			user[:validated] == true or 
+			user[:validationToken] != validationToken
+			
 			status 404
+			return "Not found"
 		end
 
-		nameView.each do |user|
-			user = User.get user.id
-			if user[:validated]
-				status 404
-				return "Not found"
-			end
-
-			if user[:validationToken] == validationToken
-
-				puts user.id
-				user.update_attributes(:validated => true)
-				return user[:name]
-			else
-				status 404
-				return "Not found"
-			end
-		end
+		puts user.id
+		user.update_attributes(:validated => true)
+		return user[:name]
 	end
 
 	post '/:name/forgotPassword' do

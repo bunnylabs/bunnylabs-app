@@ -1,7 +1,6 @@
 require 'couchrest_model'
 
 class User < CouchRest::Model::Base
-  use_database $COUCHDB
 
   property :name, String
   property :email, String
@@ -10,7 +9,9 @@ class User < CouchRest::Model::Base
   property :validationToken, String
   property :registrationTime, Integer
   property :currentSession, String
-  property :accountType, String
+  property :accountType, String, :default => "normal"
+  property :githubAccessToken, String
+  property :identityId, String
 
   design do
     view :by_email

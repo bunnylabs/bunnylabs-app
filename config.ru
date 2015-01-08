@@ -1,16 +1,10 @@
 require 'sinatra/base'
 require 'rack/cors'
+require 'yaml'
 
-Dir.glob('./{helpers,controllers}/*.rb').each { |file| require file }
+Dir.glob('./{helpers,controllers,models}/*.rb').each { |file| require file }
 
 BasicController.configure :development do
-	configure do
-		$COUCH = CouchRest.new 'http://bunnylabs-app:daysofdash@localhost:5984'
-
-		$COUCH.default_database = 'bunnylabs'
-		$COUCHDB = $COUCH.default_database
-	end
-
 	use Rack::Cors do
 	  allow do
 	    origins 'localhost:4567', '127.0.0.1:4567'
@@ -23,12 +17,6 @@ BasicController.configure :development do
 end
  
 BasicController.configure :production do
-	configure do
-		$COUCH = CouchRest.new "https://#{ENV['DATABASE_LOGIN']}@#{ENV['DATABASE_HOST']}"
-		$COUCH.default_database = "#{ENV['DATABASE_NAME']}"
-		$COUCHDB = $COUCH.default_database
-	end
-
 	use Rack::Cors do
 	  allow do
 	    origins 'bunnylabs.astrobunny.net'
@@ -39,11 +27,6 @@ BasicController.configure :production do
 	  end
 	end
 end
-
-
-# Models 
-
-Dir.glob('./{models}/*.rb').each { |file| require file }
 
 # Routes
 

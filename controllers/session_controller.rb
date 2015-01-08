@@ -1,5 +1,7 @@
 require_relative 'basic_controller.rb'
 
+require 'net/http'
+
 class SessionController < BasicController
 	
 	#get session info
@@ -28,43 +30,20 @@ class SessionController < BasicController
 
 		request_payload = JSON.parse request.body.read
 
-		request_payload["username"].downcase!
-
-		nameView = User.by_name.key(request_payload["username"])
 		hashedPassword = Digest::SHA1.hexdigest request_payload["password"] + settings.salt
 
-		if nameView.rows.length > 1
-			status 409
-			return "Contact the admin"
-		end
+		user = UserUtils.get_user_named request_payload["username"]
 
-		if nameView.rows.length == 0
+		if user == false or 
+			user[:password] != hashedPassword or 
+			!user[:validated] or 
+			UserUtils.is_normal_username request_payload["username"] == false
+
 			status 403
 			return "Wrong username/password combination. Did you forget to click the validation link?"
 		end
 
-		user = nameView.rows[0]
-
-		user = User.get user.id
-
-		if user[:password] != hashedPassword or !user[:validated]
-			status 403
-			return "Wrong username/password combination. Did you forget to click the validation link?"
-		end
-
-		currentTime = Time.now.to_i
-
-		Time.at(currentTime).to_datetime
-
-		expiryTime = 14.days.from_now.to_i
-
-		session = Session.create :userid => user.id,
-						:loginTime => currentTime,
-						:ip => request.ip,
-						:lastUseTime => currentTime,
-						:expiryTime => expiryTime
-
-		user.update_attributes(:currentSession => session.id)
+		session = UserUtils.login_user user, request.ip, 14.days.from_now.to_i
 
 		return session.id
 
@@ -87,7 +66,75 @@ class SessionController < BasicController
 		rescue
 			halt 401
 		end
+	end
 
+	#login using github
+	get '/githubCallback' do
+
+		message = {
+			"type" => "githubLogin",
+			"authToken" => "",
+			"error" => ""
+		}
+
+		if settings.github_registration_enabled
+			begin
+
+				code = params[:code]
+
+				uri = URI('https://github.com/login/oauth/access_token')
+				res = Net::HTTP.post_form(uri, 
+					'client_id' => settings.github_client_id, 
+					'client_secret' => settings.github_client_secret,
+					'code' => code
+					)
+
+				result = Rack::Utils.parse_nested_query(res.body)
+
+				accessToken = result['access_token']
+
+				client = Octokit::Client.new(:access_token => accessToken)
+
+				userInfo = client.user
+
+				properUsername = "github::#{userInfo.login}"
+
+				user = UserUtils.get_user_named properUsername
+
+				if user == false
+
+					#absorb the email
+					emails = client.emails
+
+					primaryEmail = ""
+
+					emails.each do |email|
+						if email[:primary] == true
+							primaryEmail = email[:email]
+						end
+					end
+
+					result = UserUtils.create_user properUsername, 
+													userInfo.login + userInfo.id.to_s + settings.salt, # basically nonsense 
+													primaryEmail, 
+													accessToken,
+													settings.salt
+
+					user = UserUtils.get_user_named properUsername
+				end
+
+				session = UserUtils.login_user user, request.ip, 14.days.from_now.to_i
+
+				message["authToken"] = session.id
+
+			rescue => e
+				message["error"] = "Internal server error"
+			end
+		else
+			message["error"] = "Registration has been disabled"
+		end
+
+		redirect "#{settings.front_end_address}/githubLoginReceiver.html?#{message.to_query}"
 	end
 
 end
