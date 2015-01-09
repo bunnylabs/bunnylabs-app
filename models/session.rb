@@ -9,6 +9,6 @@ class Session < CouchRest::Model::Base
   property :expiryTime, Integer
 
   design do
-    view :by_name
+    view :by_userid
   end
 end

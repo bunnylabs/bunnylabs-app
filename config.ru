@@ -1,8 +1,11 @@
 require 'sinatra/base'
 require 'rack/cors'
+require 'rack/throttle'
 require 'yaml'
 
 Dir.glob('./{helpers,controllers,models}/*.rb').each { |file| require file }
+
+use Rack::Throttle::Minute, :max => 200
 
 BasicController.configure :development do
 	use Rack::Cors do

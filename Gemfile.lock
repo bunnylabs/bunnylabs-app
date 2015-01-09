@@ -46,6 +46,8 @@ GEM
     rack-cors (0.2.9)
     rack-protection (1.5.3)
       rack
+    rack-throttle (0.4.0)
+      rack (>= 1.0.0)
     rdoc (4.1.2)
       json (~> 1.4)
     rest-client (1.6.8)
@@ -89,6 +91,7 @@ DEPENDENCIES
   omniauth (~> 1.2.2)
   pony (~> 1.11)
   rack-cors (~> 0.2.9)
+  rack-throttle (~> 0.4)
   rspec (= 3.1.0)
   sinatra (~> 1.4.5)
   thin (~> 1.6.3)
