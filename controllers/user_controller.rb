@@ -93,7 +93,6 @@ Astrobunny
 			return "Not found"
 		end
 
-		puts user.id
 		user.update_attributes(:validated => true)
 
 		# Change the validation token

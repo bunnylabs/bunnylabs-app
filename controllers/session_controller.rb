@@ -138,7 +138,7 @@ class SessionController < BasicController
 			message["authToken"] = session.id
 
 		rescue => e
-			
+
 			message["error"] = errorMessage
 		end
 

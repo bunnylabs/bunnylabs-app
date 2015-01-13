@@ -26,7 +26,7 @@ class AdminController < BasicController
 			end
 
 			session.update_attributes(:lastUseTime => currentTime)
-			
+
 		rescue
 			halt 403
 		end
