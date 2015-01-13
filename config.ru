@@ -20,6 +20,9 @@ BasicController.configure :development do
 end
  
 BasicController.configure :production do
+	
+	require 'newrelic_rpm'
+	
 	use Rack::Cors do
 	  allow do
 	    origins 'bunnylabs.astrobunny.net'
