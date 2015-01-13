@@ -40,3 +40,4 @@ map('/') { run WebsiteController }
 map('/sessions/') { run SessionController }
 map('/users/') { run UserController }
 map('/admin/') { run AdminController }
+map('/public/') { run PublicController }
