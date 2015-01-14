@@ -33,7 +33,7 @@ class AdminController < BasicController
 	end
 
 	get '/users' do
-		# get all the users
+		return User.all.to_json
 	end
 
 	get '/usercount' do
@@ -41,8 +41,21 @@ class AdminController < BasicController
 		return User.count.to_s
 	end
 
+	put '/users/:id/:parameter' do
+		newValue = JSON.parse request.body.read
+
+		user = User.get params[:id]
+
+		if user != nil
+			user.update_attributes(params[:parameter] => newValue["value"])
+		end
+
+		"OK"
+
+	end
+
 	get '/sessions' do
-		# get all the sessions
+		return Session.all.to_json
 	end
 
 	get '/sessioncount' do

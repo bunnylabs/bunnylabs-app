@@ -18,6 +18,10 @@ class SessionController < BasicController
 				:username => user[:name]
 			}
 
+			if user[:accountType] == "admin"
+				returnObject[:adminToken] = user.id
+			end
+
 			return returnObject.to_json
 
 		rescue
