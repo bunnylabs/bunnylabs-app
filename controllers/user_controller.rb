@@ -30,9 +30,11 @@ class UserController < BasicController
 
 		if result[:status] == 200
 
-			user = UserUtils.get_user_named request_payload["username"]
+			Thread.new {
 
-			message = <<-MESSAGE_END
+				user = UserUtils.get_user_named request_payload["username"]
+
+				message = <<-MESSAGE_END
 Hello, #{request_payload["username"]}
 
 This e-mail is sent to you because you registered an account using this e-mail address on BunnyLabs.
@@ -44,24 +46,26 @@ Otherwise please click the following link to complete your registration:
 #{settings.front_end_address}/en/#validate=#{user[:validationToken]}&validateUsername=#{user[:name]}
 
 Astrobunny
-			MESSAGE_END
+				MESSAGE_END
 
-			Pony.mail({
-				:to => request_payload["email"],
-				:from => 'no-reply@astrobunny.net', 
-				:subject => 'Welcome to BunnyLabs!', 
-				:body => message,
-				:via => :smtp,
-				:via_options => {
-					:address              => 'smtp.gmail.com',
-					:port                 => '587',
-					:enable_starttls_auto => true,
-					:user_name            => ENV['MAIL_USERNAME'],
-					:password             => ENV['MAIL_PASSWORD'],
-					:authentication       => :plain, # :plain, :login, :cram_md5, no auth by default
-					:domain               => "astrobunny.net" # the HELO domain provided by the client to the server
-				}
-			})
+				Pony.mail({
+					:to => request_payload["email"],
+					:from => 'no-reply@astrobunny.net', 
+					:subject => 'Welcome to BunnyLabs!', 
+					:body => message,
+					:via => :smtp,
+					:via_options => {
+						:address              => 'smtp.gmail.com',
+						:port                 => '587',
+						:enable_starttls_auto => true,
+						:user_name            => ENV['MAIL_USERNAME'],
+						:password             => ENV['MAIL_PASSWORD'],
+						:authentication       => :plain, # :plain, :login, :cram_md5, no auth by default
+						:domain               => "astrobunny.net" # the HELO domain provided by the client to the server
+					}
+				})
+			}
+
 		end
 
 
@@ -147,7 +151,11 @@ Astrobunny
 
 		user = User.get emailView.rows[0].id
 
-		message = <<-MESSAGE_END
+		if user
+			
+			Thread.new {
+
+				message = <<-MESSAGE_END
 Hello, #{user[:name]}
 
 This e-mail is sent to you because you said your lost your password.
@@ -159,24 +167,27 @@ Otherwise please click the following link to change your password:
 #{settings.front_end_address}/en/#forgotPassword=#{user[:validationToken]}&validateUsername=#{user[:name]}
 
 Astrobunny
-		MESSAGE_END
+				MESSAGE_END
 
-		Pony.mail({
-			:to => user[:email],
-			:from => 'no-reply@astrobunny.net', 
-			:subject => 'Bunnylabs Forgotten Password Department', 
-			:body => message,
-			:via => :smtp,
-			:via_options => {
-				:address              => 'smtp.gmail.com',
-				:port                 => '587',
-				:enable_starttls_auto => true,
-				:user_name            => ENV['MAIL_USERNAME'],
-				:password             => ENV['MAIL_PASSWORD'],
-				:authentication       => :plain, # :plain, :login, :cram_md5, no auth by default
-				:domain               => "astrobunny.net" # the HELO domain provided by the client to the server
+				Pony.mail({
+					:to => user[:email],
+					:from => 'no-reply@astrobunny.net', 
+					:subject => 'Bunnylabs Forgotten Password Department', 
+					:body => message,
+					:via => :smtp,
+					:via_options => {
+						:address              => 'smtp.gmail.com',
+						:port                 => '587',
+						:enable_starttls_auto => true,
+						:user_name            => ENV['MAIL_USERNAME'],
+						:password             => ENV['MAIL_PASSWORD'],
+						:authentication       => :plain, # :plain, :login, :cram_md5, no auth by default
+						:domain               => "astrobunny.net" # the HELO domain provided by the client to the server
+					}
+				})
 			}
-		})
+		end
+
 
 		return ""
 
