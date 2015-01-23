@@ -57,5 +57,9 @@ class BasicController < Sinatra::Base
 	set :github_client_id, ENV['GITHUB_CLIENT_ID']
 	set :github_client_secret, ENV['GITHUB_CLIENT_SECRET']
 
+	def t(msg)
+		I18n.t( msg, locale: params[:lang] )
+	end
+
 
 end

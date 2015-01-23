@@ -12,6 +12,7 @@ class User < CouchRest::Model::Base
   property :accountType, String, :default => "normal"
   property :githubAccessToken, String
   property :identityId, String
+  property :invitesAvailable, Integer, :default => 0
 
   design do
     view :by_email

@@ -44,7 +44,7 @@ class SessionController < BasicController
 			(UserUtils.is_normal_username request_payload["username"]) == false
 
 			status 403
-			return "Wrong username/password combination. Did you forget to click the validation link?"
+			return t(:badlogin)
 		end
 
 		session = UserUtils.login_user user, request.ip, 14.days.from_now.to_i
