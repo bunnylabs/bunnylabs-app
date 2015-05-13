@@ -1,3 +1,34 @@
 ---
 en:
   badlogin: "Wrong username/password combination. Did you forget to click the validation link?"
+  registration_disabled: "Registration has been disabled"
+  invalid_username: "Allowed usernames only contain letters, numbers and underscores"
+  password_changed: "Password changed. You may now use your new password"
+  new_user_email_subject: "Welcome to BunnyLabs!"
+  logged_out: "Logged out. Thank you"
+  internal_server_error: "Internal server error"
+  new_user_email_message: |
+    Hello, %{name}
+    
+    This e-mail is sent to you because you registered an account using this e-mail address on BunnyLabs.
+    
+    If you do not believe that you registered an account, please feel free to ignore this mail or throw it in the trash.
+    
+    Otherwise please click the following link to complete your registration:
+    
+    %{frontend_address}/%{lang}/#validate=%{validation_token}&validateUsername=%{validation_name}
+    
+    Astrobunny
+  forgot_password_email_subject: "Bunnylabs Forgotten Password Department"
+  forgot_password_email_message: |
+    Hello, %{name}
+    
+    This e-mail is sent to you because you said your lost your password.
+    
+    If you didn't expect this, please feel free to ignore this mail or throw it in the trash.
+    
+    Otherwise please click the following link to change your password:
+    
+    %{frontend_address}/%{lang}/#forgotPassword=%{validation_token}&validateUsername=%{validation_name}
+    
+    Astrobunny

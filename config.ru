@@ -6,6 +6,7 @@ require 'i18n'
 
 Dir.glob('./{helpers,controllers,models}/*.rb').each { |file| require file }
 
+Faye::WebSocket.load_adapter('thin')
 
 # We're going to load the paths to locale files,
 I18n.load_path += Dir[File.join(File.dirname(__FILE__), 'locales', '*.yml').to_s]
@@ -16,7 +17,7 @@ use Rack::Throttle::Minute, :max => 200
 BasicController.configure :development do
 	use Rack::Cors do
 	  allow do
-	    origins 'localhost:4567', '127.0.0.1:4567'
+	    origins 'localhost:4567', 'localhost:5000'
 
 	    resource '/*',
 	    	:headers => :any,
@@ -47,3 +48,4 @@ map('/sessions/') { run SessionController }
 map('/users/') { run UserController }
 map('/admin/') { run AdminController }
 map('/public/') { run PublicController }
+map('/chat/') { run ChatController }

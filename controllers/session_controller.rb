@@ -65,7 +65,7 @@ class SessionController < BasicController
 
 			user.update_attributes(:currentSession => "")
 
-			return "Logged out. Thank you"
+			return t(:logged_out)
 
 		rescue
 			halt 401
@@ -81,12 +81,12 @@ class SessionController < BasicController
 			"error" => ""
 		}
 
-		errorMessage = "Internal server error"
+		errorMessage = t(:internal_server_error)
 
 		begin
 
 			if !settings.github_registration_enabled
-				errorMessage = "Registration has been disabled"
+				errorMessage = t(:registration_disabled)
 				raise
 			end
 

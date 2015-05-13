@@ -12,14 +12,14 @@ class UserController < BasicController
 
 		if settings.basic_registration_enabled == false
 			status 403
-			return "Registration has been disabled"
+			return t(:registration_disabled)
 		end
 
 		request_payload = JSON.parse request.body.read
 
 		if (UserUtils.is_normal_username request_payload["username"]) == false
 			status 409
-			return "Allowed usernames only contain letters, numbers and underscores"
+			return t(:invalid_username)
 		end
 
 		result = UserUtils.create_user request_payload["username"], 
@@ -34,24 +34,18 @@ class UserController < BasicController
 
 				user = UserUtils.get_user_named request_payload["username"]
 
-				message = <<-MESSAGE_END
-Hello, #{request_payload["username"]}
-
-This e-mail is sent to you because you registered an account using this e-mail address on BunnyLabs.
-
-If you do not believe that you registered an account, please feel free to ignore this mail or throw it in the trash.
-
-Otherwise please click the following link to complete your registration:
-
-#{settings.front_end_address}/en/#validate=#{user[:validationToken]}&validateUsername=#{user[:name]}
-
-Astrobunny
-				MESSAGE_END
+				message = t(:new_user_email_message, 
+					name: request_payload["username"], 
+					frontend_address: settings.front_end_address, 
+					validation_token: user[:validationToken], 
+					validation_name: user[:name], 
+					lang: params[:lang]
+					)
 
 				Pony.mail({
 					:to => request_payload["email"],
 					:from => 'no-reply@astrobunny.net', 
-					:subject => 'Welcome to BunnyLabs!', 
+					:subject => t(:new_user_email_subject), 
 					:body => message,
 					:via => :smtp,
 					:via_options => {
@@ -67,7 +61,6 @@ Astrobunny
 			}
 
 		end
-
 
 		status result[:status]
 		return result[:result]
@@ -132,7 +125,7 @@ Astrobunny
 		hash = Digest::SHA1.hexdigest user[:name] + currentTime.to_s + user[:email] + settings.salt
 		user.update_attributes(:validationToken => hash)
 
-		return "Password changed. You may now use your new password"
+		return t(:password_changed)
 
 	end
 
@@ -152,27 +145,21 @@ Astrobunny
 		user = User.get emailView.rows[0].id
 
 		if user
-			
+
 			Thread.new {
 
-				message = <<-MESSAGE_END
-Hello, #{user[:name]}
-
-This e-mail is sent to you because you said your lost your password.
-
-If you didn't expect this, please feel free to ignore this mail or throw it in the trash.
-
-Otherwise please click the following link to change your password:
-
-#{settings.front_end_address}/en/#forgotPassword=#{user[:validationToken]}&validateUsername=#{user[:name]}
-
-Astrobunny
-				MESSAGE_END
+				message = t(:new_user_email_message, 
+					name: user[:name], 
+					frontend_address: settings.front_end_address, 
+					validation_token: user[:validationToken], 
+					validation_name: user[:name],
+					lang: params[:lang]
+					)
 
 				Pony.mail({
 					:to => user[:email],
 					:from => 'no-reply@astrobunny.net', 
-					:subject => 'Bunnylabs Forgotten Password Department', 
+					:subject => t(:forgot_password_email_subject), 
 					:body => message,
 					:via => :smtp,
 					:via_options => {
@@ -187,7 +174,6 @@ Astrobunny
 				})
 			}
 		end
-
 
 		return ""
 
